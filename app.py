@@ -4,6 +4,7 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores import FAISS
 from langchain.embeddings import HuggingFaceEmbeddings
 from langchain_community.llms import HuggingFacePipeline
+from langchain.chains import RetrievalQA  # اضافه شده
 from transformers import pipeline
 import os
 
@@ -37,18 +38,26 @@ if vectorstore is None:
     st.stop()
 
 # لود مدل سبک
-llm = HuggingFacePipeline.from_model_id(
-    model_id="distilgpt2",  # مدل سبک برای Streamlit Cloud
-    task="text-generation",
-    pipeline_kwargs={"max_length": 500, "temperature": 0.1}
-)
+try:
+    llm = HuggingFacePipeline.from_model_id(
+        model_id="distilgpt2",  # مدل سبک برای Streamlit Cloud
+        task="text-generation",
+        pipeline_kwargs={"max_length": 500, "temperature": 0.1}
+    )
+except Exception as e:
+    st.error(f"خطا در لود مدل: {e}")
+    st.stop()
 
 # زنجیره QA با RAG
-qa_chain = RetrievalQA.from_chain_type(
-    llm=llm,
-    chain_type="stuff",
-    retriever=vectorstore.as_retriever(search_kwargs={"k": 5})
-)
+try:
+    qa_chain = RetrievalQA.from_chain_type(
+        llm=llm,
+        chain_type="stuff",
+        retriever=vectorstore.as_retriever(search_kwargs={"k": 5})
+    )
+except Exception as e:
+    st.error(f"خطا در ساخت زنجیره QA: {e}")
+    st.stop()
 
 # رابط کاربری Streamlit
 st.title("وب اپ Q&A زیست‌شناسی دبیرستان")
