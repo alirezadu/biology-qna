@@ -4,7 +4,7 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores import FAISS
 from langchain.embeddings import HuggingFaceEmbeddings
 from langchain_community.llms import HuggingFacePipeline
-from langchain.chains import RetrievalQA  # اضافه شده
+from langchain.chains import RetrievalQA
 from transformers import pipeline
 import os
 
@@ -33,8 +33,13 @@ def load_books():
     return vectorstore
 
 # لود vectorstore
-vectorstore = load_books()
-if vectorstore is None:
+try:
+    vectorstore = load_books()
+    if vectorstore is None:
+        st.error("کتاب‌ها لود نشدند. لطفاً فایل‌های PDF رو چک کن.")
+        st.stop()
+except Exception as e:
+    st.error(f"خطا در لود کتاب‌ها: {e}")
     st.stop()
 
 # لود مدل سبک
@@ -42,7 +47,7 @@ try:
     llm = HuggingFacePipeline.from_model_id(
         model_id="distilgpt2",  # مدل سبک برای Streamlit Cloud
         task="text-generation",
-        pipeline_kwargs={"max_length": 500, "temperature": 0.1}
+        pipeline_kwargs={"max_new_tokens": 200, "temperature": 0.1}  # تغییر به max_new_tokens
     )
 except Exception as e:
     st.error(f"خطا در لود مدل: {e}")
@@ -66,10 +71,13 @@ st.write("بر اساس کتاب‌های زیست دهم، یازدهم، دو�
 
 # ورودی سوال
 question = st.text_area("سوال یا تست (عادی/شمارشی) رو بنویس:", height=150)
-if question:
-    with st.spinner("در حال تحلیل..."):
-        try:
-            response = qa_chain.run(f"""تو متخصص زیست‌شناسی دبیرستان ایران هستی. بر اساس کتاب‌های زیست دهم، یازدهم، دوازدهم، به این سوال جواب بده. اگر تست است، گزینه درست رو مشخص کن و توضیح کامل بده که چرا درست است و گزینه‌های غلط چرا غلطن. جواب باید دقیق، کامل و بدون اشکال باشه. سوال: {question}""")
-            st.markdown(response)
-        except Exception as e:
-            st.error(f"خطا: {e}. لطفاً دوباره امتحان کن یا سوال رو تغییر بده.")
+if st.button("پیدا کردن جواب"):
+    if question:
+        with st.spinner("در حال تحلیل..."):
+            try:
+                response = qa_chain.run(f"""تو متخصص زیست‌شناسی دبیرستان ایران هستی. بر اساس کتاب‌های زیست دهم، یازدهم، دوازدهم، به این سوال جواب بده. اگر تست است، گزینه درست رو مشخص کن و توضیح کامل بده که چرا درست است و گزینه‌های غلط چرا غلطن. جواب باید دقیق، کامل و بدون اشکال باشه. سوال: {question}""")
+                st.markdown(response)
+            except Exception as e:
+                st.error(f"خطا: {e}. لطفاً دوباره امتحان کن یا سوال رو تغییر بده.")
+    else:
+        st.warning("لطفاً یه سوال یا تست بنویس!")
