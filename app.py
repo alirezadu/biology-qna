@@ -3,9 +3,8 @@ from langchain.document_loaders import PyPDFLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores import FAISS
 from langchain.embeddings import HuggingFaceEmbeddings
-from langchain_community.llms import HuggingFacePipeline
+from langchain_community.llms import Ollama
 from langchain.chains import RetrievalQA
-from transformers import pipeline
 import os
 
 # تنظیمات
@@ -44,11 +43,7 @@ except Exception as e:
 
 # لود مدل سبک
 try:
-    llm = HuggingFacePipeline.from_model_id(
-        model_id="distilgpt2",  # مدل سبک برای Streamlit Cloud
-        task="text-generation",
-        pipeline_kwargs={"max_new_tokens": 200, "temperature": 0.1}  # تغییر به max_new_tokens
-    )
+    llm = Ollama(model="phi3:mini", num_predict=200, temperature=0.1)  # مدل سبک phi3:mini
 except Exception as e:
     st.error(f"خطا در لود مدل: {e}")
     st.stop()
