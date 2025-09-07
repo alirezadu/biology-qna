@@ -10,8 +10,8 @@ RUN curl https://ollama.ai/install.sh | sh
 COPY . /app
 WORKDIR /app
 
-# نصب مدل phi3:mini
-RUN ollama serve & sleep 5 && ollama pull phi3:mini
+# راه‌اندازی سرور Ollama و نصب مدل phi3:mini
+RUN ollama serve & sleep 10 && ollama pull phi3:mini
 
 # اجرای Streamlit
-CMD ["streamlit", "run", "app.py", "--server.port=8501"]
+CMD ["sh", "-c", "ollama serve & sleep 5 && streamlit run app.py --server.port=8501"]
