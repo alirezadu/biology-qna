@@ -3,24 +3,14 @@ from langchain.document_loaders import PyPDFLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores import FAISS
 from langchain.embeddings import HuggingFaceEmbeddings
-from langchain_community.llms import Ollama
+from langchain_community.llms import HuggingFacePipeline
 from langchain.chains import RetrievalQA
+from transformers import pipeline
 import os
-import subprocess
-import time
 
 # تنظیمات
 BOOKS_DIR = "books"
 BOOKS = ["zist10.pdf", "zist11.pdf", "zist12.pdf"]
-
-# راه‌اندازی سرور Ollama
-try:
-    subprocess.Popen(["/usr/local/bin/ollama", "serve"])
-    time.sleep(10)  # صبر بیشتر برای شروع سرور
-    subprocess.run(["/usr/local/bin/ollama", "pull", "phi3:mini"], check=True)
-except Exception as e:
-    st.error(f"خطا در راه‌اندازی سرور Ollama یا نصب مدل: {e}")
-    st.stop()
 
 # لود و index کتاب‌ها
 @st.cache_resource
@@ -54,7 +44,11 @@ except Exception as e:
 
 # لود مدل سبک
 try:
-    llm = Ollama(model="phi3:mini", num_predict=200, temperature=0.1)
+    llm = HuggingFacePipeline.from_model_id(
+        model_id="gpt2",  # مدل سبک‌تر برای Streamlit Cloud
+        task="text-generation",
+        pipeline_kwargs={"max_new_tokens": 150, "temperature": 0.1, "do_sample": True}
+    )
 except Exception as e:
     st.error(f"خطا در لود مدل: {e}")
     st.stop()
@@ -64,7 +58,8 @@ try:
     qa_chain = RetrievalQA.from_chain_type(
         llm=llm,
         chain_type="stuff",
-        retriever=vectorstore.as_retriever(search_kwargs={"k": 5})
+        retriever=vectorstore.as_retriever(search_kwargs={"k": 5}),
+        return_source_documents=False
     )
 except Exception as e:
     st.error(f"خطا در ساخت زنجیره QA: {e}")
