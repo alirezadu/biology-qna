@@ -3,9 +3,8 @@ from langchain.document_loaders import PyPDFLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores import FAISS
 from langchain.embeddings import HuggingFaceEmbeddings
-from langchain_community.llms import HuggingFacePipeline
+from langchain_grok import Grok
 from langchain.chains import RetrievalQA
-from transformers import pipeline
 import os
 
 # تنظیمات
@@ -42,15 +41,15 @@ except Exception as e:
     st.error(f"خطا در لود کتاب‌ها: {e}")
     st.stop()
 
-# لود مدل سبک
+# لود API Grok
 try:
-    llm = HuggingFacePipeline.from_model_id(
-        model_id="gpt2",  # مدل سبک‌تر برای Streamlit Cloud
-        task="text-generation",
-        pipeline_kwargs={"max_new_tokens": 150, "temperature": 0.1, "do_sample": True}
-    )
+    api_key = os.getenv("XAI_API_KEY")  # API Key از متغیر محیطی
+    if not api_key:
+        st.error("لطفاً API Key را در Streamlit Cloud تنظیم کنید!")
+        st.stop()
+    llm = Grok(api_key=api_key, model="grok-3")
 except Exception as e:
-    st.error(f"خطا در لود مدل: {e}")
+    st.error(f"خطا در لود Grok API: {e}")
     st.stop()
 
 # زنجیره QA با RAG
