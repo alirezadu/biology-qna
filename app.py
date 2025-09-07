@@ -15,10 +15,11 @@ BOOKS = ["zist10.pdf", "zist11.pdf", "zist12.pdf"]
 
 # راه‌اندازی سرور Ollama
 try:
-    subprocess.Popen(["ollama", "serve"])
-    time.sleep(5)  # صبر برای شروع سرور
+    subprocess.Popen(["/usr/local/bin/ollama", "serve"])
+    time.sleep(10)  # صبر بیشتر برای شروع سرور
+    subprocess.run(["/usr/local/bin/ollama", "pull", "phi3:mini"], check=True)
 except Exception as e:
-    st.error(f"خطا در راه‌اندازی سرور Ollama: {e}")
+    st.error(f"خطا در راه‌اندازی سرور Ollama یا نصب مدل: {e}")
     st.stop()
 
 # لود و index کتاب‌ها
