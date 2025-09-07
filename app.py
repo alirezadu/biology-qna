@@ -6,10 +6,20 @@ from langchain.embeddings import HuggingFaceEmbeddings
 from langchain_community.llms import Ollama
 from langchain.chains import RetrievalQA
 import os
+import subprocess
+import time
 
 # تنظیمات
 BOOKS_DIR = "books"
 BOOKS = ["zist10.pdf", "zist11.pdf", "zist12.pdf"]
+
+# راه‌اندازی سرور Ollama
+try:
+    subprocess.Popen(["ollama", "serve"])
+    time.sleep(5)  # صبر برای شروع سرور
+except Exception as e:
+    st.error(f"خطا در راه‌اندازی سرور Ollama: {e}")
+    st.stop()
 
 # لود و index کتاب‌ها
 @st.cache_resource
@@ -43,7 +53,7 @@ except Exception as e:
 
 # لود مدل سبک
 try:
-    llm = Ollama(model="phi3:mini", num_predict=200, temperature=0.1)  # مدل سبک phi3:mini
+    llm = Ollama(model="phi3:mini", num_predict=200, temperature=0.1)
 except Exception as e:
     st.error(f"خطا در لود مدل: {e}")
     st.stop()
